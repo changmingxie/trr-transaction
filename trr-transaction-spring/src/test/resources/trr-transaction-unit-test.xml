@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <context:component-scan base-package="org.mengyun.compensable.transaction"/>
+
+    <util:properties id="jdbc" location="classpath:jdbc.properties"/>
+
+    <bean class="org.mengyun.compensable.transaction.recovery.DefaultRecoverConfig">
+        <property name="maxRetryCount" value="5"/>
+        <property name="recoverDuration" value="5"/>
+        <property name="cronExpression" value="*/5 * * * * ?"/>
+    </bean>
+
+     <bean id="transactionRepository" class="org.mengyun.compensable.transaction.repository.RedisTransactionRepository">
+        <property name="keyPrefix" value="TRR:UT:"/>
+        <property name="jedisPool" ref="jedisPool"/>
+    </bean>
+
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="1000"/>
+        <property name="maxWaitMillis" value="1000"/>
+    </bean>
+
+    <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+        <constructor-arg index="0" ref="jedisPoolConfig"/>
+        <constructor-arg index="1" value="127.0.0.1"/>
+        <constructor-arg index="2" value="6379" type="int"/>
+        <constructor-arg index="3" value="3000" type="int"/>
+        <constructor-arg index="4" type="java.lang.String">
+            <null/>
+        </constructor-arg>
+        <constructor-arg index="5" value="0" type="int"/>
+    </bean>
+
+
+    <!--<bean id="transactionRepository"-->
+          <!--class="org.mengyun.compensable.transaction.repository.SpringJdbcTransactionRepository">-->
+        <!--<property name="dataSource" ref="trrDataSource"/>-->
+        <!--<property name="domain" value="TRR"/>-->
+        <!--<property name="tbSuffix" value="_TRR"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="trrDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"-->
+          <!--destroy-method="close" lazy-init="false">-->
+        <!--<property name="driverClass" value="#{jdbc['jdbc.driverClassName']}"/>-->
+        <!--<property name="jdbcUrl" value="#{jdbc['trr.jdbc.url']}"/>-->
+        <!--<property name="user" value="#{jdbc['jdbc.username']}"/>-->
+        <!--<property name="password" value="#{jdbc['jdbc.password']}"/>-->
+        <!--<property name="initialPoolSize" value="#{jdbc['c3p0.initialPoolSize']}"/>-->
+        <!--<property name="minPoolSize" value="#{jdbc['c3p0.minPoolSize']}"/>-->
+        <!--<property name="maxPoolSize" value="#{jdbc['c3p0.maxPoolSize']}"/>-->
+        <!--<property name="acquireIncrement" value="#{jdbc['c3p0.acquireIncrement']}"/>-->
+        <!--<property name="maxIdleTime" value="#{jdbc['c3p0.maxIdleTime']}"/>-->
+        <!--<property name="checkoutTimeout" value="#{jdbc['c3p0.checkoutTimeout']}"/>-->
+    <!--</bean>-->
+
+</beans>
